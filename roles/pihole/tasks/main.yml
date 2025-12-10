@@ -5,19 +5,43 @@
     state: directory
     mode: '0755'
 
+- name: Create Podman network with DNS disabled
+  ansible.builtin.command:
+    cmd: podman network create --disable-dns pihole-net
+  register: network_create
+  failed_when: 
+    - network_create.rc != 0 
+    - "'already exists' not in network_create.stderr"
+  changed_when: network_create.rc == 0
+
 - name: Copy docker-compose.yml
   ansible.builtin.template:
     src: docker-compose.yml.j2
     dest: "{{ ansible_user_dir }}/pihole/docker-compose.yml"
     mode: '0644'
 
+# Ensure clean slate as requested
+- name: Tear down existing PiHole containers if needed
+  ansible.builtin.command:
+    cmd: podman-compose down
+    chdir: "{{ ansible_user_dir }}/pihole"
+  ignore_errors: yes
+  become: yes
+
+- name: Force remove pihole container to ensure clean start
+  ansible.builtin.command:
+    cmd: podman rm -f pihole
+  ignore_errors: yes
+  become: yes
+  
 - name: Run PiHole with podman-compose
   ansible.builtin.command:
     cmd: podman-compose up -d
     chdir: "{{ ansible_user_dir }}/pihole"
   register: compose_output
   changed_when: "'Recreating' in compose_output.stdout or 'Creating' in compose_output.stdout"
-
+  become: yes
+  
 - name: Display connection info
   ansible.builtin.debug:
     msg: "PiHole is running. Access it at http://{{ ansible_host }}/admin"

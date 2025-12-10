@@ -1,6 +1,5 @@
 version: "3"
 
-# More info at https://github.com/pi-hole/docker-pi-hole/ and https://docs.pi-hole.net/
 services:
   pihole:
     container_name: pihole
@@ -9,18 +8,24 @@ services:
       - "53:53/tcp"
       - "53:53/udp"
       - "80:80/tcp"
-      # - "443:443/tcp" # Enable if using HTTPS
-      # - "67:67/udp" # Enable if using Pi-hole as DHCP Server
     environment:
       TZ: 'Asia/Tokyo'
-      # Pi-hole v6 configuration
-      FTLCONF_webserver_api_password: '{{ pihole_password }}'
+      # User requested WEBPASSWORD via environment variable
+      WEBPASSWORD: '{{ pihole_password }}'
+      # Keep FTLCONF as fallback or if user switches to v6 later/concurrently
+      FTLCONF_webserver_api_password: '{{ pihole_password }}' 
       FTLCONF_dns_listeningMode: 'ALL'
     volumes:
       - './etc-pihole:/etc/pihole'
-      # - './etc-dnsmasq.d:/etc/dnsmasq.d' # Not typically needed for fresh v6 installs
+      - './etc-dnsmasq.d:/etc/dnsmasq.d'
     cap_add:
       - NET_ADMIN
       - SYS_TIME
-      - SYS_NICE
+      - SYS_NICE # Optional
     restart: unless-stopped
+    networks:
+      - pihole-net
+
+networks:
+  pihole-net:
+    external: true
