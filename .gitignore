@@ -1,0 +1,13 @@
+# Ansible
+*.retry
+*.log
+inventory/hosts
+env.sh
+.ansible/
+secrets.yml
+.vault_pass
+
+# Editors
+.vscode/
+.idea/
+*.swp

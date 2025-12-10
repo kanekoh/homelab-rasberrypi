@@ -1,0 +1,23 @@
+---
+- name: Create PiHole directory
+  ansible.builtin.file:
+    path: "{{ ansible_user_dir }}/pihole"
+    state: directory
+    mode: '0755'
+
+- name: Copy docker-compose.yml
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ ansible_user_dir }}/pihole/docker-compose.yml"
+    mode: '0644'
+
+- name: Run PiHole with podman-compose
+  ansible.builtin.command:
+    cmd: podman-compose up -d
+    chdir: "{{ ansible_user_dir }}/pihole"
+  register: compose_output
+  changed_when: "'Recreating' in compose_output.stdout or 'Creating' in compose_output.stdout"
+
+- name: Display connection info
+  ansible.builtin.debug:
+    msg: "PiHole is running. Access it at http://{{ ansible_host }}/admin"

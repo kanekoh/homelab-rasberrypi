@@ -1,0 +1,26 @@
+---
+- name: Install Podman and dependencies
+  ansible.builtin.apt:
+    name:
+      - podman
+      - podman-docker
+      - python3-pip
+      - git
+    state: present
+    update_cache: yes
+  become: yes
+
+- name: Install podman-compose via pip
+  ansible.builtin.pip:
+    name: podman-compose
+    state: present
+    executable: pip3
+  become: yes
+
+# Optional: Enable Podman user socket if strictly needed for tools expecting docker.sock
+# - name: Enable podman.socket
+#   ansible.builtin.systemd:
+#     name: podman.socket
+#     enabled: yes
+#     state: started
+#     scope: user

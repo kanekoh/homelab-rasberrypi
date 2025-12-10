@@ -1,0 +1,29 @@
+---
+- name: Setup Dynamic Inventory
+  hosts: localhost
+  gather_facts: no
+  vars:
+    target_host: "{{ lookup('env', 'TARGET_HOST') }}"
+    target_user: "{{ lookup('env', 'TARGET_USER') }}"
+    target_password: "{{ lookup('env', 'TARGET_PASSWORD') }}"
+    target_key: "{{ lookup('env', 'TARGET_KEY_FILE') }}"
+  tasks:
+    - name: Add host from environment variables
+      add_host:
+        name: "{{ target_host }}"
+        groups: pihole
+        ansible_user: "{{ target_user }}"
+        ansible_ssh_pass: "{{ target_password }}"
+        ansible_ssh_private_key_file: "{{ target_key }}"
+      when: target_host != ""
+
+- name: Deploy PiHole on Raspberry Pi
+  hosts: pihole
+  gather_facts: yes
+  
+  vars:
+    pihole_password: "{{ lookup('env', 'PIHOLE_PASSWORD') | default('admin', true) }}"
+
+  roles:
+    - podman
+    - pihole
