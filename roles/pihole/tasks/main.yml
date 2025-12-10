@@ -9,6 +9,7 @@
   ansible.builtin.command:
     cmd: podman network create --disable-dns pihole-net
   register: network_create
+  become: true
   failed_when: 
     - network_create.rc != 0 
     - "'already exists' not in network_create.stderr"
